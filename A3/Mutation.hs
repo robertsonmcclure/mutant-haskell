@@ -14,6 +14,7 @@ module Mutation (
     where
 
 import AList (AList, lookupA, insertA, updateA)
+import Data.List (sortBy, intersect, nub)
 
 -- A type representing the possible values stored in memory.
 data Value = IntVal Integer |
@@ -28,6 +29,14 @@ data Pointer a = P Integer deriving Show
 
 --
 data StateOp a = StateOp (Memory -> (a, Memory))
+
+-- helpers to sort memory
+compareFirst :: Ord a => (a, b) -> (a, b) -> Ordering
+compareFirst (x, _) (y, _) = compare y x
+
+sortMem :: Memory -> Memory
+sortMem mem = sortBy compareFirst mem
+
 
 runOp :: StateOp a -> Memory -> (a, Memory)
 runOp (StateOp op) mem = op mem
@@ -95,7 +104,10 @@ instance Mutable Bool where
 
 
 alloc :: Mutable a => a -> StateOp (Pointer a)
-alloc = undefined
+alloc val = getNewAddress >~> \ptr -> (def ptr val)
+
+getNewAddress :: StateOp (Integer)
+getNewAddress = StateOp(\mem -> ((1 + (fst (head (sortMem mem)))), mem))
 
 free :: Mutable a => Pointer a -> StateOp ()
 free = undefined
