@@ -7,8 +7,9 @@ which you will use as the data structure for storing "mutable" data.
 -- **YOU MUST ADD ALL FUNCTIONS AND TYPES TO THIS LIST AS YOU CREATE THEM!!**
 module Mutation (
     Mutable, get, set, def,
-    Memory, Pointer,
-    (>>>), (>~>), StateOp, Value, returnVal, runOp
+    Memory, Pointer(..),
+    (>>>), (>~>), StateOp(..), Value(..),
+    returnVal, runOp, alloc, free
     )
     where
 
@@ -91,3 +92,10 @@ instance Mutable Bool where
     get (P pt) = StateOp(\mem -> case lookupA mem pt of BoolVal val -> (val, mem))
     set (P pt) val = StateOp(\mem -> ((), updateA mem (pt, BoolVal val)))
     def pt val = StateOp(\mem -> ((P pt), insertA mem (pt, BoolVal val)))
+
+
+alloc :: Mutable a => a -> StateOp (Pointer a)
+alloc = undefined
+
+free :: Mutable a => Pointer a -> StateOp ()
+free = undefined

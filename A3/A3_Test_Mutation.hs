@@ -2,11 +2,11 @@ import Test.HUnit
 -- NOTE: Make sure your file exports all the required names,
 -- even if you didn't finish everything!
 import Mutation (
-    Memory, Pointer(..), 
+    Memory, Pointer(..),
     Mutable, get, set, def,
-    StateOp(..), Value(..), 
-    (>>>), (>~>)) 
---    alloc, free, returnVal)
+    StateOp(..), Value(..),
+    (>>>), (>~>),
+    returnVal, alloc, free)
 
 
 import Data.List (sortBy, intersect, nub)
@@ -69,7 +69,7 @@ chainTests =
              (100, IntVal 42)] ~=? sortMem (run defGet testMem),
             ("hello, world!", testMem) ~=? run (returnVal "hello, world!") testMem
         ]
-{-
+
 safetyTests :: Test
 safetyTests =
     let (p, newMem) = run (alloc (42 :: Integer)) testMem
@@ -84,7 +84,7 @@ safetyTests =
         [(1, IntVal 10), (2, IntVal 30), (4, BoolVal False)] ~=?
             sortMem (run (free p3) testMem)
     ]
--}
+
 main :: IO ()
 main = do
     printCount "mutableTests" mutableTests
