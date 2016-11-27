@@ -31,4 +31,6 @@ swap pt1 pt2 =
   set pt2 x1
 
 swapCycle :: Mutable a => [Pointer a] -> StateOp ()
-swapCycle = undefined
+swapCycle (x:[]) = (swap x x)
+swapCycle (x:y:[]) = (swap x y)
+swapCycle (x:y:xs) = (swap x y) >>> (swapCycle (y:xs))
