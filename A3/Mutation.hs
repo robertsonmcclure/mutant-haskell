@@ -13,8 +13,9 @@ module Mutation (
     )
     where
 
-import AList (AList, lookupA, insertA, updateA)
+import AList (AList, lookupA, insertA, updateA, removeA)
 import Data.List (sortBy, intersect, nub)
+
 
 -- A type representing the possible values stored in memory.
 data Value = IntVal Integer |
@@ -110,4 +111,4 @@ getNewAddress :: StateOp (Integer)
 getNewAddress = StateOp(\mem -> ((1 + (fst (head (sortMem mem)))), mem))
 
 free :: Mutable a => Pointer a -> StateOp ()
-free = undefined
+free (P idx) = StateOp(\mem -> ((), removeA mem idx))

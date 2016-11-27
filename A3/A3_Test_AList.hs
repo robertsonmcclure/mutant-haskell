@@ -3,7 +3,8 @@ import AList (
     AList,
     lookupA,
     insertA,
-    updateA)
+    updateA,
+    removeA)
 import Data.List (sort)
 
 

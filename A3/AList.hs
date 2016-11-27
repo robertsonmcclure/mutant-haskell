@@ -7,7 +7,8 @@ module AList (
     AList,
     lookupA,
     insertA,
-    updateA
+    updateA,
+    removeA
     )
     where
 
@@ -32,3 +33,7 @@ insertA [] (key, val) = (key, val):[]
 updateA :: Eq a => AList a b -> (a, b) -> AList a b
 updateA ((a,b):xs) (key, val) = if (a == key) then (a, val):xs else (a,b):(updateA xs (key, val))
 updateA [] (key, val) = []
+
+removeA :: Eq a => AList a b -> a -> AList a b
+removeA ((a,b):xs) index = if (a == index) then xs else (a,b):(removeA xs index)
+removeA [] index = []
