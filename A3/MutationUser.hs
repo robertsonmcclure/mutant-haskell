@@ -24,12 +24,17 @@ pointerTest int memory =
     -}
 
 swap :: Mutable a => Pointer a -> Pointer a -> StateOp ()
-swap pt1 pt2 = StateOp (\mem ->
+swap pt1 pt2 = (get pt1 >~> (\x ->
+                  (get pt2 >~> \y ->
+                     (set pt1 y >>> set pt2 x))))
+
+{-swap pt1 pt2 = StateOp (\mem ->
     ((), let  (v1, _) = runOp (get pt1) mem
               (v2, _) = runOp (get pt2) mem
               in case runOp (set pt1 v2 >>> set pt2 v1) mem of (_, memory) -> memory))
 
               --(get pt1 >~> set pt2)
+-}
 
 
 swapCycle :: Mutable a => [Pointer a] -> StateOp ()
