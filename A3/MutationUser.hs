@@ -14,14 +14,10 @@ import Mutation (
 --   - the boolean (n > 0) at location 500
 --   Return the pointer to each stored value, and the new memory.
 --   You may assume these locations are not already used by the memory.
-pointerTest :: Integer -> Memory -> ((Pointer Integer, Pointer Bool), Memory)
-pointerTest = undefined
-{-
-pointerTest int memory =
-	let { (firstpt, mem) = def memory 100  (int + 3)
-        ;(secondpt, finalmem) = def mem 500 (int > 0)}
-    in ((firstpt, secondpt), finalmem)
-    -}
+pointerTest :: Integer -> StateOp ((Pointer Integer, Pointer Bool))
+pointerTest int =
+    def 100 (int + 3) >~> \pt1 ->
+    def 500 (int > 0) >~> \pt2 -> returnVal (pt1, pt2)
 
 swap :: Mutable a => Pointer a -> Pointer a -> StateOp ()
 swap pt1 pt2 =

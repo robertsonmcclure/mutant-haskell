@@ -58,7 +58,7 @@ swapTests = TestList [
     testMem ~=?
         sortMem (run (swapCycle [p1]) testMem)
     ]
-{-
+
 pointerTestTests :: Test
 pointerTestTests =
     let ((p1, p2), newMem) = run (pointerTest 3) testMem
@@ -69,12 +69,12 @@ pointerTestTests =
             testMem ++ [(100, IntVal 6), (500, BoolVal True)] ~=?
                 sortMem2 newMem
             ]
--}
+
 
 main :: IO ()
 main = do
     printCount "swapTests" swapTests
-    -- printCount "pointerTestTests" pointerTestTests
+    printCount "pointerTestTests" pointerTestTests
     -- Uncomment these to see more detailed test results.
     -- (Format's a little ugly, though.)
     --runTestTT swapTests
