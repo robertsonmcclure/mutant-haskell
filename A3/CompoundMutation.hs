@@ -14,6 +14,8 @@ module Mutation (
     where
 
 import AList (AList, lookupA, insertA, updateA, removeA)
+import Data.List (sortBy, intersect, nub)
+
 
 -- A type representing the possible values stored in memory.
 data Value = IntVal Integer |
@@ -23,16 +25,22 @@ data Value = IntVal Integer |
 -- A type representing a container for stored "mutable" values.
 type Memory = AList Integer Value
 
--- A type representing a pointer to a location in memory.
-data Pointer a = P Integer deriving Show
+-- A Type representing a person with two attributes:
+-- age and whether they are a student or not
+data Person = Person Integer Bool deriving Show
 
+-- A type representing a pointer to a location in memory.
+data Pointer a = P Integer | PerP Integer Integer deriving Show
+-- ????
 --
 data StateOp a = StateOp (Memory -> (a, Memory))
 
--- helpers to get new memory addr
-findMax :: Memory -> Integer -> Integer
-findMax [] maxVal = maxVal
-findMax ((a,b):xs) maxVal = if a > maxVal then findMax xs a else findMax xs maxVal
+-- helpers to sort memory
+compareFirst :: Ord a => (a, b) -> (a, b) -> Ordering
+compareFirst (x, _) (y, _) = compare y x
+
+sortMem :: Memory -> Memory
+sortMem mem = sortBy compareFirst mem
 
 
 runOp :: StateOp a -> Memory -> (a, Memory)
@@ -99,12 +107,29 @@ instance Mutable Bool where
     set (P pt) val = StateOp(\mem -> ((), updateA mem (pt, BoolVal val)))
     def pt val = StateOp(\mem -> ((P pt), insertA mem (pt, BoolVal val)))
 
-
 alloc :: Mutable a => a -> StateOp (Pointer a)
 alloc val = getNewAddress >~> \ptr -> (def ptr val)
 
 getNewAddress :: StateOp (Integer)
-getNewAddress = StateOp(\mem -> ((1 + (findMax mem 0)), mem))
+getNewAddress = StateOp(\mem -> ((1 + (fst (head (sortMem mem)))), mem))
 
 free :: Mutable a => Pointer a -> StateOp ()
 free (P idx) = StateOp(\mem -> ((), removeA mem idx))
+
+{-
+personTest :: Person -> Integer -> StateOp (Integer, Bool, Person)
+personTest person x =
+  -- not using alloc, but we could
+  def 1 person >~> \personPointer ->
+  get (personPointer @@ age) >~> \oldAge ->
+  set (personPointer @@ age) x >>>
+  get (personPointer @@ isStudent) >~> \stu ->
+  get (personPointer @@ age) >~> \newAge ->
+  set personPointer (Person (2 * newAge) (not stu)) >>>
+  get personPointer >~> \newPerson ->
+  get (personPointer @@ isStudent) >~> \newStu ->
+  returnVal (oldAge, newStu, newPerson)
+  -}
+
+-- fst (runOp (personTest (person 2 True) 10 ) [])
+-- (2, False, Person 20 False)
