@@ -30,12 +30,5 @@ swap pt1 pt2 =
   set pt1 x2 >>>
   set pt2 x1
 
-
--- swap pt1 pt2 = StateOp (\mem ->
---   ((), let  (v1, _) = runOp (get pt1) mem
---             (v2, _) = runOp (get pt2) me m
---             in case runOp (set pt1 v2 >>> set pt2 v1) mem of (_, memory) -> memory))
-
-
 swapCycle :: Mutable a => [Pointer a] -> StateOp ()
 swapCycle = undefined
