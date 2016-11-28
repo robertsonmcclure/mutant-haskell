@@ -14,8 +14,6 @@ module Mutation (
     where
 
 import AList (AList, lookupA, insertA, updateA, removeA)
-import Data.List (sortBy, intersect, nub)
-
 
 -- A type representing the possible values stored in memory.
 data Value = IntVal Integer |
@@ -35,13 +33,10 @@ data Pointer a = P Integer | PerP Integer Integer deriving Show
 --
 data StateOp a = StateOp (Memory -> (a, Memory))
 
--- helpers to sort memory
-compareFirst :: Ord a => (a, b) -> (a, b) -> Ordering
-compareFirst (x, _) (y, _) = compare y x
-
-sortMem :: Memory -> Memory
-sortMem mem = sortBy compareFirst mem
-
+-- helpers to get new memory addr
+findMax :: Memory -> Integer -> Integer
+findMax [] maxVal = maxVal
+findMax ((a,b):xs) maxVal = if a > maxVal then findMax xs a else findMax xs maxVal
 
 runOp :: StateOp a -> Memory -> (a, Memory)
 runOp (StateOp op) mem = op mem
@@ -107,16 +102,31 @@ instance Mutable Bool where
     set (P pt) val = StateOp(\mem -> ((), updateA mem (pt, BoolVal val)))
     def pt val = StateOp(\mem -> ((P pt), insertA mem (pt, BoolVal val)))
 
+instance Mutable Person where
+    -- Pointer Person -> StateOp Person [Person = Person Integer Bool]
+    get (PerP ptInt ptBool) = get (P ptInt) >~> \intVal-> get (P ptBool) >~> \boolVal-> returnVal (Person intVal boolVal)
+    --  set personPointer (Person (2 * newAge) (not stu))
+    set (PerP ptInt ptBool) (Person pInt pBool) = set (P ptInt) pInt >>> set (P ptBool) pBool
+    def pt (Person pInt pBool) = def pt pInt >>> getNewAddress >~> (\pt2 -> def pt2 pBool >>> returnVal (PerP pt pt2))
+
 alloc :: Mutable a => a -> StateOp (Pointer a)
 alloc val = getNewAddress >~> \ptr -> (def ptr val)
 
 getNewAddress :: StateOp (Integer)
-getNewAddress = StateOp(\mem -> ((1 + (fst (head (sortMem mem)))), mem))
+getNewAddress = StateOp(\mem -> ((1 + (findMax mem 0)), mem))
 
 free :: Mutable a => Pointer a -> StateOp ()
 free (P idx) = StateOp(\mem -> ((), removeA mem idx))
 
-{-
+(@@) :: Pointer Person -> ( Pointer Person -> Pointer a ) -> Pointer a
+personPtr @@ extractor = extractor personPtr
+
+age :: Pointer Person -> Pointer Integer
+age (PerP intPtr _ ) = P intPtr
+
+isStudent :: Pointer Person -> Pointer Bool
+isStudent (PerP _ boolPtr) = P boolPtr
+
 personTest :: Person -> Integer -> StateOp (Integer, Bool, Person)
 personTest person x =
   -- not using alloc, but we could
@@ -129,7 +139,6 @@ personTest person x =
   get personPointer >~> \newPerson ->
   get (personPointer @@ isStudent) >~> \newStu ->
   returnVal (oldAge, newStu, newPerson)
-  -}
 
 -- fst (runOp (personTest (person 2 True) 10 ) [])
 -- (2, False, Person 20 False)
